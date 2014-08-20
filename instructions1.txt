@@ -1,0 +1,6 @@
+String methodOrigin, String instructionOrigin, int floorNumber, int liftNumber, String direction, boolean selection
+methodFromFloor,fromFloor,2,-1,UP,true
+methodFromFloor,fromFloor,4,-1,UP,true
+methodFromFloor,fromFloor,5,-1,DOWN,true
+methodFromFloor,fromFloor,3,-1,DOWN,true
+methodFromFloor,fromFloor,3,-1,UP,true
