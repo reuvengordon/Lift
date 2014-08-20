@@ -2,7 +2,9 @@
  * Lift Controller class
  */
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Queue;
 
 public class LiftController implements Subject {
     
@@ -32,7 +34,7 @@ public class LiftController implements Subject {
     private boolean[][] selectionsFromFloor;      //This array has numberOfFloors rows x 2 cols (UP/DOWN). It tells us whether a floor has selected the UP/DOWN button. true == selected, false == unselected
     private boolean[][] selectionsFromLift;       //This array has numberOfFloors rows x numberOfLifts cols.  It tells us whether a lift has selected a floor. true == selected, false == unselected
     private Queue<Instruction> instructionLog;    //This will be a queue of all instructions passed to the Lift Controller. Useful for debugging.
-    private Queue<Node>[] liftNodeQueue;          //An array which stores a queue for each lift. The queue holds nodes which tell the lift where to go. This queue is the result from mapping the selection arrays to a set of floors for the lift to visit
+    private Queue<Node>[] liftNopoll;          //An array which stores a queue for each lift. The queue holds nodes which tell the lift where to go. This queue is the result from mapping the selection arrays to a set of floors for the lift to visit
     private int[][] currentAndNextFloorsForLifts; //This array has 2 rows x numberOfLifts cols. It tells us which floor a lift is currently at (row 1) and what is the next floor for it to visit (row 2)    
     
     /**
@@ -93,10 +95,10 @@ public class LiftController implements Subject {
         //Build the lifts- Set the 0th element to be null for simplicity.
         //Also build the lift node queues (the mapping from the selection arrays to the queue of floors to visit for each lift)
         lifts = new Lift[numberOfLifts + 1];
-        liftNodeQueue = new Queue[numberOfLifts + 1]; //(Queue<Node>[]) new Object[numberOfLifts + 1];
+        liftNopoll = new Queue[numberOfLifts + 1]; //(Queue<Node>[]) new Object[numberOfLifts + 1];
         for (i = 1; i <= numberOfLifts; i++) {
             lifts[i] = new Lift(numberOfFloors, distanceBetweenFloors, velocity, maxDoorOpenDistance, liftStartFloor, doorOpenCloseThreshold, doorOpenCloseTime);
-            liftNodeQueue[i] = new Queue<Node>();
+            liftNopoll[i] = new LinkedList<Node>();
         }
         
         //Initialise the selections arrays: the "+1's" are to eg allow us to reference floor 1 with row 1 (rather than row 0)
@@ -104,7 +106,7 @@ public class LiftController implements Subject {
         selectionsFromLift = new boolean[numberOfFloors + 1][numberOfLifts + 1];
         
         //Initialise the instruction queue
-        instructionLog = new Queue<Instruction>();
+        instructionLog = new LinkedList<Instruction>();
         
         //Build the currentAndNextFloorsForLifts array- this is to be used for debugging
         currentAndNextFloorsForLifts = new int[2][numberOfLifts + 1];            
@@ -163,7 +165,7 @@ public class LiftController implements Subject {
         //Add to the instruction log 
         if (selection) origin = ORIGIN_FROM_FLOOR;
         else origin = ORIGIN_FROM_LC;    
-        instructionLog.enqueue(new Instruction(METHOD_ORIGIN_FROM_FLOOR, origin, thisFloor, NULL_LIFT, direction, selection));
+        instructionLog.add(new Instruction(METHOD_ORIGIN_FROM_FLOOR, origin, thisFloor, NULL_LIFT, direction, selection));
         
         //Update the display on the floor
         if (selection) {
@@ -230,7 +232,7 @@ public class LiftController implements Subject {
         //Add to the instruction log   
         if (selection) origin = ORIGIN_FROM_LIFT;
         else origin = ORIGIN_FROM_LC;            
-        instructionLog.enqueue(new Instruction(METHOD_ORIGIN_FROM_LIFT, origin, floorToVisit, thisLift, NULL_DIRECTION, selection));
+        instructionLog.add(new Instruction(METHOD_ORIGIN_FROM_LIFT, origin, floorToVisit, thisLift, NULL_DIRECTION, selection));
         
         //Update the display in the lift
         if (selection) {
@@ -365,15 +367,15 @@ public class LiftController implements Subject {
         //System.out.printf("Running guideLift for lift %d\n", liftNumber);
         
         //Retrieve the queue of nodes to visit for this lift
-        Queue<Node> nodeQueue = liftNodeQueue[liftNumber];
+        Queue<Node> nopoll = liftNopoll[liftNumber];
         
         //Get the current lift state
         LiftState lState = l.getState();
         boolean isStationary = lState.isStationary();  //save recalculation
         
-        //Is the nodeQueue empty? If so, stop the lift and return
-        if (nodeQueue.isEmpty()) {
-            //System.out.printf("nodeQueue is empty\n");
+        //Is the nopoll empty? If so, stop the lift and return
+        if (nopoll.isEmpty()) {
+            //System.out.printf("nopoll is empty\n");
             //If the lift is not stationary, stop it
             if (!isStationary) {                
                 l.stop();
@@ -383,7 +385,7 @@ public class LiftController implements Subject {
         
         //At this point, the queue is not empty so we have places to go!
         //Check what the node is that we want to visit
-        Node nodeToVisit = nodeQueue.peek();
+        Node nodeToVisit = nopoll.peek();
         int floorToVisit = nodeToVisit.getFloor();
        // System.out.printf("floorToVisit = %d\n", floorToVisit);
         
@@ -430,7 +432,7 @@ public class LiftController implements Subject {
     
     /**
      * Arrival procedures- There are several things we need to do when a lift is at a floor that it wanted to visit
-     * We need to: dequeue the node off the lift queue, stop the lift, ping bell, open doors, close doors, issue an instruction to UNselect the relevant lights on floors/lifts, update the selection arrays
+     * We need to: poll the node off the lift queue, stop the lift, ping bell, open doors, close doors, issue an instruction to UNselect the relevant lights on floors/lifts, update the selection arrays
      * @param liftNumber tells us which number lift in the building 
      * @param Lift is the lift under consideration
      */
@@ -440,9 +442,9 @@ public class LiftController implements Subject {
         //System.out.printf("l.canOpenCloseDoorAtFloor(floorToVisit) = %b\n", l.canOpenCloseDoorAtFloor(l.getCurrentFloor()));
         //System.out.printf("l.getCurrentFloor() = %d\n", l.getCurrentFloor());
         
-        //Dequeue the node from the lift queue- Do this first as once issue the UNselect instructions, it re-runs the matching algorithm
+        //poll the node from the lift queue- Do this first as once issue the UNselect instructions, it re-runs the matching algorithm
         //System.out.printf("Dequeuing the node from the lift queue...\n");
-        Node nodeToVisit = liftNodeQueue[liftNumber].dequeue();
+        Node nodeToVisit = liftNopoll[liftNumber].poll();
         
         //If the lift is not stationary, stop it
         if (!l.getState().isStationary()) {     
@@ -500,16 +502,15 @@ public class LiftController implements Subject {
                 //for each lift, check all floors selected by the lift. add to the node queue for that lift
                 for(int i = 1; i <= numberOfLifts; i++) {
                     //Store a copy of the existing queue for that lift as it may be useful
-                    Queue<Node> q = liftNodeQueue[i];
                     //Now remove the existing queue for this lift as we are going to recalculate it
-                    //liftNodeQueue[i] = null;  //Must comment this out as when i press a button to call the lift, when this line sets liftNodeQueue[i] = null, the guideLift() can be running resulting in a nullPointerException
-                    liftNodeQueue[i] = new Queue<Node>();
+                    //liftNopoll[i] = null;  //Must comment this out as when i press a button to call the lift, when this line sets liftNopoll[i] = null, the guideLift() can be running resulting in a nullPointerException
+                    liftNopoll[i] = new LinkedList<Node>();
                     
                     for (int j = 1; j <= numberOfFloors; j++) {
                         if (selectionsFromLift[j][i]) {
                             //add a node: Node(int floor, boolean fromLift, boolean fromFloorUP, boolean fromFloorDOWN)
                             //System.out.printf("adding a node from a lift\n");
-                            liftNodeQueue[i].enqueue(new Node(j, true, false, false));
+                            liftNopoll[i].add(new Node(j, true, false, false));
                         }
                     }
                 }
@@ -517,16 +518,16 @@ public class LiftController implements Subject {
                 for (int j = 1; j <= numberOfFloors; j++) {
                     if (selectionsFromFloor[j][0]) {
                         //System.out.printf("adding a node UP from a floor\n");
-                        liftNodeQueue[1].enqueue(new Node(j, false, true, false));
+                        liftNopoll[1].add(new Node(j, false, true, false));
                     }
                     if (selectionsFromFloor[j][1]) {
                        // System.out.printf("adding a node DOWN from a floor\n");
-                        liftNodeQueue[1].enqueue(new Node(j, false, false, true));
+                        liftNopoll[1].add(new Node(j, false, false, true));
                     }
                 }
                 //Debugging
                 for(int i = 1; i <= numberOfLifts; i++) {
-                    System.out.printf("Size of queue for lift %d = %d\n", i, liftNodeQueue[i].size());
+                    System.out.printf("Size of queue for lift %d = %d\n", i, liftNopoll[i].size());
                 }
                 break;
             }                        
@@ -655,7 +656,7 @@ public class LiftController implements Subject {
         //store the floors to visit in an array list
         ArrayList<Integer> floorsToVisit = new ArrayList<Integer>();
         //retrieve the queue of nodes for the selected lift
-        Queue<Node> q = liftNodeQueue[lift];
+        Queue<Node> q = liftNopoll[lift];
         //add the floors to visit for each node to the arraylist
         for (Node n : q) {
             floorsToVisit.add(n.getFloor());
