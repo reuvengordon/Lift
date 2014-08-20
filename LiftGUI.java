@@ -1,20 +1,24 @@
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Queue;
+
+import javax.swing.BorderFactory;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.JLabel;
-import java.awt.*;
+import javax.swing.JPanel;
 //import java.awt.FlowLayout;
 //import java.util.ArrayList;
 import javax.swing.JToggleButton;
-import javax.swing.BorderFactory; 
 import javax.swing.border.Border;
-import javax.swing.border.TitledBorder;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import javax.swing.border.LineBorder;
 //import javax.swing.event.ChangeListener;
 //import javax.swing.event.ChangeEvent;
 //import javax.swing.Box;
 //import javax.swing.BoxLayout;
+import javax.swing.border.TitledBorder;
 
 public class LiftGUI extends JFrame { 
     
