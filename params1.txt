@@ -1,0 +1,9 @@
+numberOfFloors=10
+numberOfLifts=3
+distanceBetweenFloors=3
+velocity=2
+maxDoorOpenDistance=1.5
+liftStartFloor=1
+doorOpenCloseThreshold=0.25
+doorOpenCloseTime=0
+matchingAlgorithm=1
