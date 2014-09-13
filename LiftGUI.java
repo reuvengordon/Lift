@@ -190,7 +190,7 @@ public class LiftGUI extends JFrame {
         @Override
         public void update() {
             //update the state of the floor button
-            select(lc.getselectionFromFloorDirection(floor, direction));
+            select(lc.getselectionFromFloorDirection(getFloor(), getDirection()));
         }
     }
     
@@ -259,7 +259,7 @@ public class LiftGUI extends JFrame {
         @Override
         public void update() {
             //update the state of the lift button
-            select(lc.getselectionsFromLiftFloor(floor, lift));
+            select(lc.getselectionsFromLiftFloor(getFloor(), getLift()));
         }
     }
     
