@@ -13,7 +13,7 @@ where X is a version of the lift params file and Y is the version of the instruc
 // TODO 
 Implement various algorithms to optimise the lift movement.  I plan to do this in a few steps to break down the problem
 
-1) Assume lift buttons only are being pressed (ie no-one presses buttons on a floor).  In this assumption, every lift is independent of each other.  This problem can be reduced to finding the shortest Hamiltonian path in a digraph, where vertices correspond to floors to be visited and the current lift position).
+1) Assume lift buttons only are being pressed (ie no-one presses buttons on a floor).  In this assumption, every lift is independent of each other.  This problem can be reduced to finding the shortest Hamiltonian path in a digraph, where vertices correspond to floors to be visited and the current lift position).  This is essentially the travelling salesman problem (TSP).
 
 2) Assume floor buttons only are being pressed.
 
