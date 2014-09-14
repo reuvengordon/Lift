@@ -18,7 +18,6 @@ public class LiftController implements Subject {
     private static final String ORIGIN_FROM_LC = "fromLC";
     private static final String SELECT_UP = "UP";
     private static final String SELECT_DOWN = "DOWN";
-    //private static final int MAX_ITERATIONS = 10000000;   //This is just for debugging- Controls how many times the LC loop can execute
    
     private List<Observer> observers;  //This is the list of observer objects from the GUI
     private final Object MUTEX= new Object();
@@ -35,43 +34,7 @@ public class LiftController implements Subject {
     private boolean[][] selectionsFromLift;       //This array has numberOfFloors rows x numberOfLifts cols.  It tells us whether a lift has selected a floor. true == selected, false == unselected
     private Queue<Instruction> instructionLog;    //This will be a queue of all instructions passed to the Lift Controller. Useful for debugging.
     private Queue<Node>[] liftNopoll;          //An array which stores a queue for each lift. The queue holds nodes which tell the lift where to go. This queue is the result from mapping the selection arrays to a set of floors for the lift to visit
-    private int[][] currentAndNextFloorsForLifts; //This array has 2 rows x numberOfLifts cols. It tells us which floor a lift is currently at (row 1) and what is the next floor for it to visit (row 2)    
-    
-    /**
-     * Private class Node
-     * To tell a lift where to go, we will maintain a queue of nodes for that lift.
-     * The node tells the lift the floor it has to go to, but also where the instruction came from (via selections arrays)
-     */
-    private static class Node {
-        
-        private int floor;
-        private boolean fromLift;
-        private boolean fromFloorUP;
-        private boolean fromFloorDOWN;
-        
-        public Node(int floor, boolean fromLift, boolean fromFloorUP, boolean fromFloorDOWN) {
-            this.floor = floor;
-            this.fromLift = fromLift;
-            this.fromFloorUP = fromFloorUP;
-            this.fromFloorDOWN = fromFloorDOWN;
-        }
-        
-        /**
-         * Getters
-         */
-        public int getFloor() {
-            return floor;
-        }
-        public boolean getFromLift() {
-            return fromLift;
-        }
-        public boolean getfromFloorUP() {
-            return fromFloorUP;
-        }
-        public boolean getfromFloorDOWN() {
-            return fromFloorDOWN;
-        }
-    }
+    private int[][] currentAndNextFloorsForLifts; //This array has 2 rows x numberOfLifts cols. It tells us which floor a lift is currently at (row 1) and what is the next floor for it to visit (row 2)            
     
     /**
      * Constructor: Build the LC, floors and lifts
@@ -490,48 +453,13 @@ public class LiftController implements Subject {
      * this algo will look at the selection arrays and update the queues of nodes for each lift
      * @param algoNumber specifies which number algorithm to use for matching
      */
-    public void doMatching(int algoNumber) {        
-        /*** TO DO ***/
-        switch(algoNumber) {
-            //Stupid matching. have each lift visit their floors selected by the lift (in ascending order).  then assign the floors selected by floor to lift 1.
-            //initially dont care about up or down at a floor.
-            //also don't care if a floor is selected more than once
-            case 1: {       
-                //System.out.printf("Running matching algorithm 1\n"); 
-                
-                //for each lift, check all floors selected by the lift. add to the node queue for that lift
-                for(int i = 1; i <= numberOfLifts; i++) {
-                    //Store a copy of the existing queue for that lift as it may be useful
-                    //Now remove the existing queue for this lift as we are going to recalculate it
-                    //liftNopoll[i] = null;  //Must comment this out as when i press a button to call the lift, when this line sets liftNopoll[i] = null, the guideLift() can be running resulting in a nullPointerException
-                    liftNopoll[i] = new LinkedList<Node>();
-                    
-                    for (int j = 1; j <= numberOfFloors; j++) {
-                        if (selectionsFromLift[j][i]) {
-                            //add a node: Node(int floor, boolean fromLift, boolean fromFloorUP, boolean fromFloorDOWN)
-                            //System.out.printf("adding a node from a lift\n");
-                            liftNopoll[i].add(new Node(j, true, false, false));
-                        }
-                    }
-                }
-                //assign all selections from floors to be assigned to lift #1
-                for (int j = 1; j <= numberOfFloors; j++) {
-                    if (selectionsFromFloor[j][0]) {
-                        //System.out.printf("adding a node UP from a floor\n");
-                        liftNopoll[1].add(new Node(j, false, true, false));
-                    }
-                    if (selectionsFromFloor[j][1]) {
-                       // System.out.printf("adding a node DOWN from a floor\n");
-                        liftNopoll[1].add(new Node(j, false, false, true));
-                    }
-                }
-                //Debugging
-                for(int i = 1; i <= numberOfLifts; i++) {
-                    System.out.printf("Size of queue for lift %d = %d\n", i, liftNopoll[i].size());
-                }
-                break;
-            }                        
-        }
+    public void doMatching(int algoNumber) {        	
+    	//create an optimiserAlgo object
+    	OptimiserAlgo o = new OptimiserAlgo(numberOfLifts, numberOfFloors, selectionsFromLift, selectionsFromFloor, algoNumber);
+    	//optimise it
+    	o.optimise();
+    	//set the Queue of nodes to visit for each lift
+    	liftNopoll = o.getOptimisedNodesAll();
     }
     
     /**

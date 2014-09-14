@@ -78,7 +78,7 @@ public class ExecuteLift2 {
         
         //new LiftGUI(numberOfFloors, numberOfLifts, distanceBetweenFloors, velocity, maxDoorOpenDistance, liftStartFloor, doorOpenCloseThreshold, doorOpenCloseTime, matchingAlgorithm, instructionLog);         
 		Queue<Instruction> instructionLog = new LinkedList<Instruction>();	    		
-    	new LiftGUI(10, 3, 3, 2, 1.5, 1, .1, 0, 1, instructionLog);
+    	new LiftGUI(10, 3, 3, 6, 1.5, 1, .1, 0, 1, instructionLog);
     }
 }
     
