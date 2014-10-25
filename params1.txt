@@ -5,5 +5,5 @@ velocity=2
 maxDoorOpenDistance=1.5
 liftStartFloor=1
 doorOpenCloseThreshold=0.25
-doorOpenCloseTime=0
+doorOpenCloseTime=2000
 matchingAlgorithm=1

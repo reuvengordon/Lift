@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Class to describe the state of the lift at any time
  */

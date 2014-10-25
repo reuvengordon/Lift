@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Lift Controller class
  */
@@ -60,7 +61,7 @@ public class LiftController implements Subject {
         lifts = new Lift[numberOfLifts + 1];
         liftNopoll = new Queue[numberOfLifts + 1]; //(Queue<Node>[]) new Object[numberOfLifts + 1];
         for (i = 1; i <= numberOfLifts; i++) {
-            lifts[i] = new Lift(numberOfFloors, distanceBetweenFloors, velocity, maxDoorOpenDistance, liftStartFloor, doorOpenCloseThreshold, doorOpenCloseTime);
+            lifts[i] = new Lift(i, numberOfFloors, distanceBetweenFloors, velocity, maxDoorOpenDistance, liftStartFloor, doorOpenCloseThreshold, doorOpenCloseTime);
             liftNopoll[i] = new LinkedList<Node>();
         }
         
@@ -73,6 +74,31 @@ public class LiftController implements Subject {
         
         //Build the currentAndNextFloorsForLifts array- this is to be used for debugging
         currentAndNextFloorsForLifts = new int[2][numberOfLifts + 1];            
+    }
+    
+    private class LiftThread implements Runnable {
+
+    	//instance variable
+    	private Lift l;
+    	
+    	/**
+    	 * Constructor
+    	 */
+    	public LiftThread(Lift l) {
+    		this.l = l;
+    	}
+    	
+    	@Override
+    	public void run() {
+	      //Now run the infinite loop to call the various LC tasks
+	      while (true) {
+	          runInEachLoop(l); 
+	          
+	          //update the observers            
+	          notifyObservers();
+	      }
+    	}
+
     }
     
     /**
@@ -232,36 +258,38 @@ public class LiftController implements Subject {
             }
         }
         
-        //Print the selections arrays
-       /* for (int i = 1; i <= numberOfFloors; i++) {
-            System.out.printf("Floor %d: UP = %b | DOWN = %b", i, selectionsFromFloor[i][0], selectionsFromFloor[i][1]);
-            for (int j = 1; j <= numberOfLifts; j++) {
-                System.out.printf(" | Lift %d = %b\n", j, selectionsFromLift[i][j]);
-            }
-        }*/
+//        boolean stopRunning = false;
+//        //Now run the infinite loop to call the various LC tasks
+//        while (!stopRunning) {
+//            runInEachLoop(); 
+//            
+//            //update the observers            
+//            notifyObservers();
+//        }
         
-        boolean stopRunning = false;
-        //Now run the infinite loop to call the various LC tasks
-        while (!stopRunning) {
-            runInEachLoop(); 
-            
-            //update the observers
-            
-            notifyObservers();
+        //Create a new thread for each lift.  in each thread, run the infinite loop        
+        for (int i = 1; i <= lifts.length - 1; i++) {
+        	
+        	(new Thread(new LiftThread(lifts[i]))).start();
+        	
         }
     }
     
     /**
      * This is the method that calls various LC tasks each time the loop is run
      * We plan to run this an an infinite loop until the user hits Ctrl+C
+     * @param i refers to the liftNumber of lift l
      */
-    public void runInEachLoop() {
+    public void runInEachLoop(Lift l) {
         
+    	//Get the lift number
+    	int i = l.getLiftNumber();
+    	
         //iterate through each lift and move it towards the nodes in its queue
-        for (int i = 1; i <= lifts.length - 1; i++) {
+        //for (int i = 1; i <= lifts.length - 1; i++) {
 
             //Get the lift
-            Lift l = lifts[i];
+           // Lift l = lifts[i];
             
             //find the new position of the lift since the last iteration of this method
             //running the simple version does not stop the lift. it just updates its state (which is just its position from bottom)
@@ -317,17 +345,17 @@ public class LiftController implements Subject {
             }
             
             //now guide the lift through its queue of nodes to visit
-            guideLift(i, l);
-        }        
+            guideLift(l);
+        //}        
     }
     
     /**
      * Guide a lift through its queue of nodes to visit
      * @param lift specifies which lift is currently being guided
      */
-    public void guideLift(int liftNumber, Lift l) {                
+    public void guideLift(Lift l) {                
         
-        //System.out.printf("Running guideLift for lift %d\n", liftNumber);
+        int liftNumber = l.getLiftNumber();
         
         //Retrieve the queue of nodes to visit for this lift
         Queue<Node> nopoll = liftNopoll[liftNumber];
@@ -361,7 +389,7 @@ public class LiftController implements Subject {
             System.out.printf("l.getPositionFromFloor(%d) = %g\n", floorToVisit, l.getPositionFromFloor(floorToVisit));
             System.out.printf("l.getPositionFromFloor(%d) = %g\n", l.getCurrentFloor(), l.getPositionFromFloor(l.getCurrentFloor()));
             */
-            arrivalProcedures(liftNumber, l);
+            arrivalProcedures(l);
             return;
         }
             
@@ -399,8 +427,10 @@ public class LiftController implements Subject {
      * @param liftNumber tells us which number lift in the building 
      * @param Lift is the lift under consideration
      */
-    public void arrivalProcedures(int liftNumber, Lift l) {
+    public void arrivalProcedures(Lift l) {
     
+    	int liftNumber = l.getLiftNumber();
+    	
         System.out.printf("\nInitiating arrival procedures for liftNumber %d at floor %d\n", liftNumber, l.getCurrentFloor());
         //System.out.printf("l.canOpenCloseDoorAtFloor(floorToVisit) = %b\n", l.canOpenCloseDoorAtFloor(l.getCurrentFloor()));
         //System.out.printf("l.getCurrentFloor() = %d\n", l.getCurrentFloor());

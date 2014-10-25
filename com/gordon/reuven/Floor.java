@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Floor class
  * Creates a list of information displays for each floor (for each lift)

@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Floor Button Panel class
  * There is an up and down button on each floor (down on 1st and up on Top floor shouldn't work)

@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Lift button panel class
  */

@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Instruction class
  * Instructions passed to the LC (or decided by the LC) can be stored as instruction

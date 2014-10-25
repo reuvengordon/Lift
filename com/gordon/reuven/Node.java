@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Private class Node
  * To tell a lift where to go, we will maintain a queue of nodes for that lift.

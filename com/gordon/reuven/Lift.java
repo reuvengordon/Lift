@@ -1,3 +1,4 @@
+package com.gordon.reuven;
 /**
  * Lift class
  */
@@ -6,10 +7,11 @@ public class Lift {
     //Instance variables
     private static final String UP = "UP";
     private static final String DOWN = "DOWN";
-    private static final String BELL = "\007";
+    private static final String BELL = "\0007";
     private static final int GROUNDFLOOR = 1;
     private static final long NANOMULTIPLIER = 1000000000;
     
+    private int liftNumber;
     private int numberOfFloors;
     private double distanceBetweenFloors;
     private double doorOpenCloseThreshold;  //This is the distance between the lift and the floor for the doors to be allowed to open
@@ -24,6 +26,7 @@ public class Lift {
     
     /**
       * Constructor
+      * @param liftNumber is the number of the lift as assigned by the LC
       * @param numberOfFloors int number of floors in building
       * @param distanceBetweenFloors double distance between floors in m
       * @param velocity double velocity of lift in m/s
@@ -32,7 +35,7 @@ public class Lift {
       * @param doorOpenCloseThreshold double the min distance from a floor for which the doors can open
       * @param doorOpenCloseTime int the time it takes to open and close the lift door
       */
-    public Lift(int numberOfFloors, double distanceBetweenFloors, double velocity, double maxDoorOpenDistance, int liftStartFloor, double doorOpenCloseThreshold, int doorOpenCloseTime) {
+    public Lift(int liftNumber, int numberOfFloors, double distanceBetweenFloors, double velocity, double maxDoorOpenDistance, int liftStartFloor, double doorOpenCloseThreshold, int doorOpenCloseTime) {
         
         //input parameter checking
         if (numberOfFloors <= 1) {
@@ -61,6 +64,7 @@ public class Lift {
         }
         
         //set the lift params
+        this.liftNumber = liftNumber;
         this.numberOfFloors = numberOfFloors;
         this.distanceBetweenFloors = distanceBetweenFloors;
         this.velocity = velocity;    
@@ -69,7 +73,7 @@ public class Lift {
         buildingHeight = numberOfFloors*distanceBetweenFloors;
         
         //Build the door
-        door = new LiftDoor(maxDoorOpenDistance, doorOpenCloseTime);
+        door = new LiftDoor(maxDoorOpenDistance, doorOpenCloseTime, liftNumber);
         
         //Build the motor
         motor = new LiftMotor();
@@ -77,10 +81,10 @@ public class Lift {
         //Build the lift button panel
         liftButtonPanel = new LiftButtonPanel(numberOfFloors);
         
-        //Initialisation
+        //Initialization
         timeLastCalled = System.nanoTime();       
                    
-        //Set the lift state. input arguement is the position from bottom
+        //Set the lift state. input argument is the position from bottom
         lState = new LiftState((liftStartFloor - 1) * distanceBetweenFloors);
     }
     
@@ -302,7 +306,8 @@ public class Lift {
      */
     public void pingBell() {
         // ASCII bell
-        System.out.print(BELL);
+        //System.out.print(BELL);
+        java.awt.Toolkit.getDefaultToolkit().beep();
         System.out.flush();        
     }
     
@@ -325,6 +330,14 @@ public class Lift {
             return m.getMotorDirection() == DOWN;
         }
         return false;
+    }
+    
+    /**
+     * Getter:
+     * @return the number of the lift
+     */
+    public int getLiftNumber() {
+    	return liftNumber;
     }
     
     /**
