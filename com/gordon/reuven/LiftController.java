@@ -76,6 +76,10 @@ public class LiftController implements Subject {
         currentAndNextFloorsForLifts = new int[2][numberOfLifts + 1];            
     }
     
+    /**
+     * Inner class to spin off each lift onto a new thread
+     * This will allow us to do things like pause a thread to open/close a door on lift X without interrupting the other lifts
+     */
     private class LiftThread implements Runnable {
 
     	//instance variable
